@@ -1,10 +1,10 @@
 <template>
 	<div class="container">
 		<div class="row" v-if="messages != ''">
-			<div class="col-lg-12 card mb-5">
+			<div class="col-lg-12 card mb-4 pb-3">
 				<h2 class="py-3 px-2">Mensagens do sistema</h2>
 				<ul class="list-group list-group-flush">
-					<li class="list-group-item" v-for="message in messages" :key="message">{{message}}</li>
+					<li :class="`list-group-item  list-group-item-${message.type}`" v-for="message in messages" :key="message.text">{{message.text}}</li>
 				</ul>
 			</div>
 		</div>
@@ -71,15 +71,15 @@
 			<div class="col-lg-12">
 				<div class="d-grid gap-2">
 					<label for="chave_publica" class="form-label">Chave Pública</label>
-					<textarea name="chave_publica" id="chave_publica" cols="30" rows="4" readonly></textarea>
+					<textarea name="chave_publica" id="chave_publica" cols="30" rows="4" readonly v-model="chave_publica"></textarea>
 				</div>
 			</div>
 		</div>
-		<div class="row my-2" v-show="dados_carta_encriptado != ''">
+		<div class="row my-2" v-show="dados_cartao_encriptado != ''">
 			<div class="col-lg-12">
 				<div class="d-grid gap-2">
-					<label for="dados_carta_encriptado" class="form-label">Dados do cartão encriptados</label>
-					<textarea name="dados_carta_encriptado" id="dados_carta_encriptado" cols="30" rows="4" readonly></textarea>
+					<label for="dados_cartao_encriptado" class="form-label">Dados do cartão encriptados</label>
+					<textarea name="dados_cartao_encriptado" id="dados_cartao_encriptado" cols="30" rows="4" readonly v-model="dados_cartao_encriptado"></textarea>
 				</div>
 			</div>
 		</div>
@@ -118,15 +118,74 @@
 
 				salt					:	'',
 				chave_publica			:	'',
-				dados_carta_encriptado	:	'',
+				dados_cartao_encriptado	:	'',
 				mascara_cartao			:	'',
 				hash_cartao				:	'',
 			}
 		},
 		methods : {
 			gerarToken(){
+				// reseta as variaveis
+				this.messages					= []
+				this.salt						= ''
+				this.chave_publica				= ''
+				this.dados_cartao_encriptado		= ''
+				this.mascara_cartao				= ''
+				this.hash_cartao				= ''
 
-			}
+				// seta variaveis
+				let that = this
+				let payee_code = that.payee_code;
+
+				// executa
+				Promise.all([
+					that.getSalt(payee_code), that.getPublicKey(payee_code)
+				])
+			},
+
+			getSalt(payee_code){
+				let that = this
+				return new Promise((resolve, reject) => {
+					fetch('/salt', {
+						method : 'GET',
+						mode	:	'no-cors',
+						headers : [
+							['account-code', payee_code]
+						]
+					}).then(function(response){
+						return response.json();
+					}).then(function(response){
+						that.messages.push({type:'success', text: 'Sucesso ao obter: "Salt"'})
+						console.log('response getSalt', response)
+						that.salt = response.data
+						resolve(response)
+					}).catch(function(error){
+						that.messages.push({type:'danger', text: 'Erro ao obter: "Salt"'})
+						console.error('error getSalt', error)
+						reject(error)
+					})
+				});
+			},
+			getPublicKey(payee_code){
+				let that = this
+				return new Promise((resolve, reject) => {
+					fetch('/v1/pubkey?code=' + payee_code, {
+						method : 'GET',
+						mode	:	'no-cors'
+					}).then(function(response){
+						return response.json();
+					}).then(function(response){
+						console.log('response getPublicKey', response)
+						that.messages.push({type:'success', text: 'Sucesso ao obter: "Chave Pública"'})
+						that.chave_publica = response.data
+						resolve(response)
+					}).catch(function(error){
+						//console.error('error getPublicKey', error)
+						that.messages.push({type:'danger', text: 'Erro ao obter: "Chave Pública"'})
+						reject(error)
+					})
+				});
+			},
 		}
 
 	}
