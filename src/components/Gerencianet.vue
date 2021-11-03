@@ -58,6 +58,47 @@
 				</div>
 			</div>
 		</div>
+		<div class="row my-2" v-show="salt != ''">
+			<div class="col-lg-12">
+				<hr>
+				<div class="d-grid gap-2">
+					<label for="salt" class="form-label">Salt</label>
+					<input type="text" class="form-control" id="salt" v-model="salt" readonly>
+				</div>
+			</div>
+		</div>
+		<div class="row my-2" v-show="chave_publica != ''">
+			<div class="col-lg-12">
+				<div class="d-grid gap-2">
+					<label for="chave_publica" class="form-label">Chave Pública</label>
+					<textarea name="chave_publica" id="chave_publica" cols="30" rows="4" readonly></textarea>
+				</div>
+			</div>
+		</div>
+		<div class="row my-2" v-show="dados_carta_encriptado != ''">
+			<div class="col-lg-12">
+				<div class="d-grid gap-2">
+					<label for="dados_carta_encriptado" class="form-label">Dados do cartão encriptados</label>
+					<textarea name="dados_carta_encriptado" id="dados_carta_encriptado" cols="30" rows="4" readonly></textarea>
+				</div>
+			</div>
+		</div>
+		<div class="row my-2" v-show="mascara_cartao != ''">
+			<div class="col-lg-12 bg-success text-white pb-4 pt-2">
+				<div class="d-grid gap-2">
+					<label for="mascara_cartao" class="form-label">Máscara do Cartão</label>
+					<input type="text" class="form-control" id="mascara_cartao" v-model="mascara_cartao" readonly>
+				</div>
+			</div>
+		</div>
+		<div class="row my-2" v-show="hash_cartao != ''">
+			<div class="col-lg-12 bg-success text-white pb-4 pt-2">
+				<div class="d-grid gap-2">
+					<label for="hash_cartao" class="form-label">Hash do Cartão</label>
+					<input type="text" class="form-control" id="hash_cartao" v-model="hash_cartao" readonly>
+				</div>
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -73,12 +114,18 @@
 					cvv					:	'123', // código de segurança
 					expiration_month	:	'05', // mês de vencimento
 					expiration_year		:	'2021' // ano de vencimento
-				}
+				},
+
+				salt					:	'',
+				chave_publica			:	'',
+				dados_carta_encriptado	:	'',
+				mascara_cartao			:	'',
+				hash_cartao				:	'',
 			}
 		},
 		methods : {
 			gerarToken(){
-				
+
 			}
 		}
 
