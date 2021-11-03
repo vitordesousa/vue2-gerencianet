@@ -176,10 +176,15 @@
 					}).then(function(response){
 						return response.json();
 					}).then(function(response){
-						that.messages.push({type:'success', text: 'Sucesso ao obter: "Salt"'})
-						console.log('response getSalt', response)
-						that.salt = response.data
-						resolve(response)
+						if(response.data){
+							that.salt = response.data
+							console.log('response getPublicKey', response)
+							that.messages.push({type:'success', text: 'Sucesso ao obter: "Salt"'})
+							resolve(response)
+						} else {
+							that.messages.push({type:'danger', text: `Erro ao obter: "Chave Pública" (${response.error_description})`})
+							return false;
+						}
 					}).catch(function(error){
 						that.messages.push({type:'danger', text: 'Erro ao obter: "Salt"'})
 						console.error('error getSalt', error)
@@ -196,10 +201,15 @@
 					}).then(function(response){
 						return response.json();
 					}).then(function(response){
-						console.log('response getPublicKey', response)
-						that.messages.push({type:'success', text: 'Sucesso ao obter: "Chave Pública"'})
-						that.chave_publica = response.data
-						resolve(response)
+						if(response.data){
+							console.log('response getPublicKey', response)
+							that.messages.push({type:'success', text: 'Sucesso ao obter: "Chave Pública"'})
+							that.chave_publica = response.data
+							resolve(response)
+						} else {
+							that.messages.push({type:'danger', text: `Erro ao obter: "Chave Pública" (${response.error_description})`})
+							return false;
+						}
 					}).catch(function(error){
 						console.error('error getPublicKey', error)
 						that.messages.push({type:'danger', text: 'Erro ao obter: "Chave Pública"'})
@@ -237,12 +247,17 @@
 					}).then(function(response){
 						return response.json();
 					}).then(function(response){
-						console.log('saved', response)
-						that.messages.push({type:'success', text: 'Sucesso ao obter: "Máscara do Cartão"'})
-						that.messages.push({type:'success', text: 'Sucesso ao obter: "Hash do Cartão"'})
-						that.mascara_cartao = response.data.card_mask;
-						that.hash_cartao = response.data.payment_token;
-						resolve(response)
+						if(response.data){							
+							console.log('saved', response)
+							that.messages.push({type:'success', text: 'Sucesso ao obter: "Máscara do Cartão"'})
+							that.messages.push({type:'success', text: 'Sucesso ao obter: "Hash do Cartão"'})
+							that.mascara_cartao = response.data.card_mask;
+							that.hash_cartao = response.data.payment_token;
+							resolve(response)
+						} else {
+							that.messages.push({type:'danger', text: `Erro ao obter: "Chave Pública" (${response.error_description})`})
+							return false;
+						}
 					}).catch(function(error){
 						console.error('error saveCardData', error)
 						that.messages.push({type:'danger', text: 'Erro ao obter: "Máscara do Cartão"'})
