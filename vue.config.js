@@ -2,13 +2,13 @@ module.exports = {
 	devServer: {
 		proxy: {
 			'^/salt': {
-			  target: 'https://tokenizer.gerencianet.com.br/',
+				target: 'https://tokenizer.gerencianet.com.br/',
 			},
 			'^/v1': {
-			  target: 'https://sandbox.gerencianet.com.br/'
+				target: 'https://sandbox.gerencianet.com.br/'
 			},
 			'^/card': {
-			  target: 'https://sandbox.gerencianet.com.br/v1/'
+				target: 'https://sandbox.gerencianet.com.br/v1/'
 			}
 		}
 	}
