@@ -103,6 +103,7 @@
 </template>
 
 <script>
+	import {JSEncrypt} from 'jsencrypt'
 	export default {
 		data(){
 			return {
@@ -129,7 +130,7 @@
 				this.messages					= []
 				this.salt						= ''
 				this.chave_publica				= ''
-				this.dados_cartao_encriptado		= ''
+				this.dados_cartao_encriptado	= ''
 				this.mascara_cartao				= ''
 				this.hash_cartao				= ''
 
@@ -141,6 +142,26 @@
 				Promise.all([
 					that.getSalt(payee_code), that.getPublicKey(payee_code)
 				])
+				.then(function(resultPromises){
+					console.log('resultPromises', resultPromises)
+					
+					//let pay_token = process.env.gn_payee_code;
+					var cardData = {
+						brand: that.cardData.brand, // bandeira do cartão
+						number: that.cardData.number, // número do cartão
+						cvv: that.cardData.cvv, // código de segurança
+						expiration_month: that.cardData.expiration_month, // mês de vencimento
+						expiration_year: that.cardData.expiration_year, // ano de vencimento
+						salt:	resultPromises[0].data
+					};
+
+					//that.cardData.salt = resultPromises[0].data
+					//console.log('---', that.cardData)
+					Promise.all([that.getCardDataEncrypted(resultPromises[1].data, cardData)]).then(function(resultPromises2){
+						console.log('resultPromises2', resultPromises2)
+						that.saveCardData(payee_code, resultPromises2[0])
+					})
+				})
 			},
 
 			getSalt(payee_code){
@@ -180,8 +201,52 @@
 						that.chave_publica = response.data
 						resolve(response)
 					}).catch(function(error){
-						//console.error('error getPublicKey', error)
+						console.error('error getPublicKey', error)
 						that.messages.push({type:'danger', text: 'Erro ao obter: "Chave Pública"'})
+						reject(error)
+					})
+				});
+			},
+			async getCardDataEncrypted(publicKey, cardData){
+				let that = this
+				let crypt = new JSEncrypt();
+
+				try {
+					crypt.setPublicKey(publicKey);
+					var encryptedCardData = crypt.encrypt(JSON.stringify(cardData));
+					that.messages.push({type:'success', text: 'Sucesso ao obter: "Cartão Encriptado"'})
+					console.log('encryptedCardData', encryptedCardData);
+					that.dados_cartao_encriptado = encryptedCardData
+					return encryptedCardData;
+				} catch (e) {
+					console.log('error getCardDataEncrypted', e)
+					that.messages.push({type:'danger', text: 'Erro ao obter: "Cartão Encriptado"'})
+				}
+			},
+			saveCardData(pay_token, cardDataEncrypted){
+				let that = this
+				return new Promise((resolve, reject) => {
+					let data = JSON.stringify({ "data": cardDataEncrypted })
+					fetch('/card', {
+						method	:	'POST',
+						body	:	data,
+						headers : 	{
+							'account-code': pay_token,
+							'Content-Type': 'application/json',
+						},
+					}).then(function(response){
+						return response.json();
+					}).then(function(response){
+						console.log('saved', response)
+						that.messages.push({type:'success', text: 'Sucesso ao obter: "Máscara do Cartão"'})
+						that.messages.push({type:'success', text: 'Sucesso ao obter: "Hash do Cartão"'})
+						that.mascara_cartao = response.data.card_mask;
+						that.hash_cartao = response.data.payment_token;
+						resolve(response)
+					}).catch(function(error){
+						console.error('error saveCardData', error)
+						that.messages.push({type:'danger', text: 'Erro ao obter: "Máscara do Cartão"'})
+						that.messages.push({type:'danger', text: 'Erro ao obter: "Hash do Cartão"'})
 						reject(error)
 					})
 				});
